@@ -1,0 +1,15 @@
+[Unit]
+Description=Tribler Daemon
+After=network-online.target apache2.service
+Wants=apache2.service
+
+[Service]
+Type=simple
+PIDFile=/run/tribler/tribler.pid
+ExecStart=/usr/share/tribler/tribler --server
+ExecStartPre=/bin/sh -c 'mkdir -p /run/tribler && pgrep -u $USER -f "tribler" > /run/tribler/tribler.pid'
+KillMode=mixed
+ExecStopPost=/bin/rm -f /run/tribler/tribler.pid
+
+[Install]
+WantedBy=default.target

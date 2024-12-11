@@ -1,0 +1,25 @@
+#!/bin/sh
+set -e
+
+. /usr/share/debconf/confmodule
+
+db_input high tribler-headless-unofficial/ip_address || true
+db_input high tribler-headless-unofficial/enable_auth || true
+db_go
+
+db_get tribler-headless-unofficial/enable_auth
+if [ "$RET" = "true" ]; then
+    db_input high tribler-headless-unofficial/auth_username || true
+    db_input high tribler-headless-unofficial/auth_password || true
+    db_go
+fi
+
+db_input high tribler-headless-unofficial/service_user || true
+db_get tribler-headless-unofficial/service_user
+if [ "$RET" = "root" ]; then
+    db_input high tribler-headless-unofficial/tribler_user || true
+else
+    service_user="$RET"
+    db_set tribler-headless-unofficial/tribler_user "$service_user"
+fi
+db_go

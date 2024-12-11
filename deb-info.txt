@@ -1,0 +1,14 @@
+PACKAGE_MAINTAINER="Sachiko <sachiko@abine.us>"
+PACKAGE_DESCRIPTION="Unofficial complete tribler implementation (headless) with Apache reverse proxy"
+PACKAGE_LICENSE="GPLv3"
+PACKAGE_VENDOR="Sachiko"
+PACKAGE_URL=""
+PACKAGE_CHANGELOG="DEBIAN/changelog"
+PACKAGE_CONFIG="DEBIAN/config"
+PACKAGE_TEMPLATES="DEBIAN/templates"
+PACKAGE_POSTINST="DEBIAN/postinst"
+PACKAGE_DEPENDENCIES=(
+    "--depends=tribler >= 8.0"
+    "--depends=apache2"
+    "--depends=systemd"
+)

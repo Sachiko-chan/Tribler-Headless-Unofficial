@@ -1,0 +1,14 @@
+[Unit]
+Description=Tribler Daemon
+After=network-online.target
+
+[Service]
+Type=simple
+PIDFile=%t/tribler/tribler.pid
+ExecStart=/usr/share/tribler/tribler --server
+ExecStartPre=/bin/sh -c 'mkdir -p %t/tribler && pgrep -u $USER -f "tribler" > %t/tribler/tribler.pid'
+KillMode=mixed
+ExecStopPost=/bin/rm -f %t/tribler/tribler.pid
+
+[Install]
+WantedBy=default.target

@@ -1,0 +1,27 @@
+Template: tribler-headless-unofficial/ip_address
+Type: string
+Default: 0.0.0.0
+Description: Enter IP address to listen on:
+
+Template: tribler-headless-unofficial/enable_auth
+Type: boolean
+Default: true
+Description: Do you want to enable authentication?
+
+Template: tribler-headless-unofficial/auth_username
+Type: string
+Description: Enter authentication username:
+
+Template: tribler-headless-unofficial/auth_password
+Type: password
+Description: Enter authentication password:
+
+Template: tribler-headless-unofficial/service_user
+Type: string
+Default: root
+Description: Enter username to run the service as (Leave blank to use global unit):
+
+Template: tribler-headless-unofficial/tribler_user
+Type: string
+Default: root
+Description: Enter username of Tribler operator (Only use if .Tribler doesn't exist in /root):
