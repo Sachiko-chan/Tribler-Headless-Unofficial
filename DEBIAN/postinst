@@ -39,18 +39,18 @@ main() {
     fi
 
     # Load Apache config
-    cp "/usr/share/tribler-headless-unofficial/tribler-headless-unofficial.conf" "/etc/apache2/sites-available/tribler-headless-unofficial.conf"
+    cp "/usr/share/tribler-headless-unofficial/tribler-headless-unofficial.conf" "/etc/apache2/conf-available/tribler-headless-unofficial.conf"
 
     # Determine latest Tribler version
     cd "${TRIBLER_USER_HOME}/.Tribler"
     TRIBLER_VERSION=$(find . -maxdepth 1 -type d -name '[0-9\.]*' | sort -V | tail -n 1)
     cd -
 
-    # Load Tribler API Key and IP into Apache site config
+    # Load Tribler API Key and IP into Apache config
     API_KEY=$(grep -m1 -oP '"key":\s*"\K[^"]*' "${TRIBLER_USER_HOME}/.Tribler/${TRIBLER_VERSION}/configuration.json")
     sed -i -e "s/API_KEY/${API_KEY:-API_KEY}/g" -e "s/IP_ADDRESS/${TRIBLER_IP:-IP_ADDRESS}/g" /etc/apache2/conf-available/tribler-headless-unofficial.conf
 
-    # Enable Apache site
+    # Enable Apache config
     a2enconf tribler-headless-unofficial.conf
 
     # Enable Apache modules
