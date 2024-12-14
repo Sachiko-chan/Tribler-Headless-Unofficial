@@ -1,8 +1,8 @@
 #!/bin/sh
-set -ex
+set -e
 
 deb_config() {
-    . /usr/share/debconf/confmodule
+    . /usr/share/debconf/confmodule 2>/dev/null
 
     db_get tribler-headless-unofficial/ip_address
     TRIBLER_IP="$RET"
@@ -10,7 +10,8 @@ deb_config() {
     db_get tribler-headless-unofficial/enable_auth
     APACHE_AUTH="$RET"
 
-    if [ "$APACHE_AUTH" = "true" ]; then
+    if [ "$APACHE_AUTH" = "true" ]
+    then
         db_get tribler-headless-unofficial/auth_username
         APACHE_AUTH_USER="$RET"
         db_get tribler-headless-unofficial/auth_password
@@ -26,11 +27,19 @@ deb_config() {
     TRIBLER_USER_HOME="$(getent passwd $TRIBLER_USER | cut -d: -f6)"
 }
 
+configure_auth() {
+    # Clean up existing auth file if it exists
+    rm /usr/share/tribler-headless-unofficial/.htpasswd || true
+    echo "$APACHE_AUTH_PWD" | htpasswd -ic /usr/share/tribler-headless-unofficial/.htpasswd "$APACHE_AUTH_USER"
+    sed -i '/./{H;$!d} ; x ; s/^\(\s*\)\(### START AUTHENTICATION ###\)\(.*\)\(### END AUTHENTICATION ###\)/\1\2\1AuthType Basic\1AuthName "Restricted Conent"\1AuthUserFile \/usr\/share\/tribler-headless-unofficial\/.htpasswd\1Require valid-user\1\4/' /etc/apache2/conf-available/tribler-headless-unofficial.conf
+}
+
 main() {
     deb_config
 
     # Copy systemd unit
-    if [ "$INSTALL_USER" = "root" ]; then
+    if [ "$INSTALL_USER" = "root" ]
+    then
         cp "/usr/share/tribler-headless-unofficial/global.systemd" "/etc/systemd/system/tribler-headless-unofficial.service"
     else
         mkdir -p "${INSTALL_USER_HOME}/.config/systemd/user/"
@@ -44,17 +53,22 @@ main() {
     # Determine latest Tribler version
     cd "${TRIBLER_USER_HOME}/.Tribler"
     TRIBLER_VERSION=$(find . -maxdepth 1 -type d -name '[0-9\.]*' | sort -V | tail -n 1)
-    cd -
+    cd - >/dev/null
 
     # Load Tribler API Key and IP into Apache config
     API_KEY=$(grep -m1 -oP '"key":\s*"\K[^"]*' "${TRIBLER_USER_HOME}/.Tribler/${TRIBLER_VERSION}/configuration.json")
     sed -i -e "s/API_KEY/${API_KEY:-API_KEY}/g" -e "s/IP_ADDRESS/${TRIBLER_IP:-IP_ADDRESS}/g" /etc/apache2/conf-available/tribler-headless-unofficial.conf
 
+    if [ "$APACHE_AUTH" = "true" ]
+    then
+        configure_auth
+    fi
+
     # Enable Apache config
     a2enconf tribler-headless-unofficial.conf
 
     # Enable Apache modules
-    a2enmod rewrite headers proxy proxy_http
+    a2enmod rewrite headers proxy proxy_http >/dev/null
 
     # Disable default site
     a2dissite 000-default.conf || true
@@ -64,14 +78,15 @@ main() {
     systemctl restart apache2
 
     # Enable tribler-headless-unofficial service
-    if [ "$INSTALL_USER" = "root" ]; then
+    if [ "$INSTALL_USER" = "root" ]
+    then
         systemctl enable tribler-headless-unofficial.service
         systemctl start tribler-headless-unofficial.service
     else
         loginctl enable-linger "$INSTALL_USER"
         # Enable user systemd unit
         mkdir -p "${INSTALL_USER_HOME}/.config/systemd/user/default.target.wants"
-        ln -s "${INSTALL_USER_HOME}/.config/systemd/user/tribler-headless-unofficial.service" "${INSTALL_USER_HOME}/.config/systemd/user/default.target.wants/tribler-headless-unofficial.service" || true
+        ln -sf "${INSTALL_USER_HOME}/.config/systemd/user/tribler-headless-unofficial.service" "${INSTALL_USER_HOME}/.config/systemd/user/default.target.wants/tribler-headless-unofficial.service" || true
         chown -R "${INSTALL_USER}:${INSTALL_USER}" "${INSTALL_USER_HOME}/.config/systemd"
     fi
 }

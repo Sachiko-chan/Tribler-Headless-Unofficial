@@ -10,5 +10,6 @@ PACKAGE_POSTINST="DEBIAN/postinst"
 PACKAGE_DEPENDENCIES=(
     "--depends=tribler >= 8.0"
     "--depends=apache2"
+    "--depends=apache2-utils"
     "--depends=systemd"
 )
